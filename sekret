@@ -1,0 +1,200 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <map>
+#include <list>
+#include <vector>
+
+
+using namespace std;
+
+class node
+{
+public:
+    int frequency;
+    char symbol;
+    node *left;
+    node *right;
+
+    node()//1 конструктор
+    {
+        left = NULL;
+        right = NULL;
+        symbol = NULL;
+
+    }
+
+    node(node *l, node *r)//2 конструктор
+    {
+        left = l;
+        right = r;
+        frequency = l->frequency + r->frequency;//В узле лежит суммарное кол-во всреч символов его сыновей
+    }
+};
+
+struct my_compare//Эта структура нужна для нормальной работы метода sort
+{
+    bool operator()(node* l, node* r) const
+    {
+        return l->frequency < r->frequency;
+    }
+};
+
+vector<bool> code; // В этом "массиве" будем хранить код символ(тип bool т.к код символа стостоит из 0 и 1)
+map<char,vector<bool>> table;//Ассоциация символа с кодом
+
+void build_table(node *root)//В конце работы этой функции map будет полностью ассоциирован
+{
+    if(root->left != NULL)
+    {
+        code.push_back(0);
+        build_table(root->left);//Спускаемся вниз по дереву
+    }
+
+    if(root->right != NULL)
+    {
+        code.push_back(1);
+        build_table(root->right);
+    }
+
+    if(root->symbol)//Если дошли до листа(только у листа есть поле с символом)
+    {
+        table[root->symbol] = code;//Символу присваеваем его новый код
+    }
+
+    if(code.size())
+    {
+        code.pop_back();//укорачиваем код на 1(выкидываем 1 символ с конца и возращаем вверх на 1 уровень)
+    }
+}
+
+node* Huffman()
+{
+
+    string file_name;//Здесь будет храниться название файла, из которого будет произведено чтение
+    string str; //Переменная для временного хранения строки из файла
+
+    cout << "Enter file path: ";//Здесь мы задаем, из какого файла будет произведено считывание
+    cin >> file_name;
+
+    ifstream file(file_name);//Отрываем файл из которого будет произведено считывание
+
+    while(file)
+    {
+        getline(file,str);//Производим чтение из файла и записываем его в строку str
+    }
+
+    cout << str << endl;//Выводим строку
+
+    map <char,int> _map;//Создаем map
+
+    for(int i = 0; i < str.length()/*Считываем длину строки*/;i++)//Заполняем map частотами символов
+    {
+        char symbol = str[i];
+        _map[symbol]++;
+    }
+
+    map <char,int>::iterator i1;//Вывод таблицы с частотой символов
+    for(i1 = _map.begin(); i1 !=_map.end(); ++i1)
+    {
+        cout << i1->first << ":" << i1->second << endl;
+    }
+
+    list<node*> t;//Создаем список указателей
+
+    map <char,int>::iterator i2;
+    for(i2 = _map.begin(); i2 !=_map.end(); ++i2)
+    {
+        node *p = new node;
+        p->symbol = i2->first;
+        p->frequency = i2->second;
+        t.push_back(p);//Загружаю указатель в список
+    }
+
+    while(t.size() != 1)//Пока в списке не останется 1 элемент
+    {
+        t.sort(my_compare());
+
+        node *left_son = t.front();
+        t.pop_front();
+        node *right_son = t.front();
+        t.pop_front();
+
+        node *parent = new node(left_son, right_son);
+        t.push_front(parent);
+    }
+
+    node *root = t.front();
+    build_table(root);//Кодируем буквы
+    file.clear();
+    file.seekg(0);
+
+    ofstream fout;
+    fout.open("output.bin");
+
+    int counter = 0;
+    char buf = 0;
+
+    while(!file.eof())
+    {
+        char c = file.get();
+        vector<bool> x = table[c];
+
+        for(int n = 0; n < x.size(); n++)
+        {
+            buf = buf | x[n]<<(7-counter);
+            counter++;
+            if (counter==8)
+            {
+                counter=0;
+                fout << buf;
+                buf=0;
+            }
+        }
+    }
+
+    file.close();
+    fout.close();
+
+    ifstream fin("output.bin");
+
+	node *p = root;
+	counter = 0;
+    char byte;
+	byte = fin.get();
+
+	while(!fin.eof())
+	{
+        bool b = byte & (1 << (7-counter));
+
+		if(b)
+		{
+            p=p->right;
+        }
+        else
+        {
+            p=p->left;
+        }
+		if(p->left==NULL && p->right==NULL)
+        {
+            cout << p->symbol;
+            p = root;
+        }
+		counter++;
+		if (counter == 8)
+        {
+            counter = 0;
+            byte = fin.get();
+        }
+	}
+
+	fin.close();
+}
+
+int main()
+{
+    Huffman();
+
+
+    return 0;
+}
