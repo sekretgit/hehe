@@ -1,0 +1,82 @@
+void decode()
+{
+    ifstream fin("output2.txt");
+    string void_symbol;
+    getline(fin,void_symbol);
+
+    while(fin)
+    {
+        char c = fin.get();
+
+        string str;
+        getline(fin,str);
+
+        for(int i = 0; i < str.length(); i++)
+        {
+            int p = int(str[i]);
+            if(p == 48)
+            {
+                code.push_back(0);
+
+            }
+            else
+            {
+                code.push_back(1);
+
+            }
+        }
+        table[c] = code;
+        code.clear();
+
+
+    }
+    fin.close();
+
+    map<char,vector<bool>>::iterator itq;
+
+    for(itq = table.begin(); itq != table.end(); ++itq)
+    {
+        cout << itq->first << " ";
+        vector<bool> x = table[itq->first];
+        for(int n = 0; n < x.size(); n++)
+        {
+            cout << x[n];
+        }
+        cout << endl;
+    }
+
+    fin.open("output.bin");
+
+
+	node *p = root;
+	counter =0;
+	char byte;
+	byte = fin.get();
+	while(!fin.eof())
+	{
+	    bool b = byte & (1 << (7-counter));
+		if (b)
+        {
+            p=p->right;
+        }
+        else
+        {
+            p = p->left;
+        }
+		if(p->left==NULL && p->right==NULL)
+        {
+            cout << p->symbol;
+            p = root;
+        }
+		counter++;
+		if(count==8)
+        {
+            count=0;
+            byte = fin.get();
+        }
+	}
+
+	fin.close();
+
+
+}
