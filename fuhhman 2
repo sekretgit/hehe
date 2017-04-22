@@ -1,0 +1,244 @@
+#include <iostream>
+#include <vector>
+#include <map>
+#include <list>
+#include <fstream>
+using namespace std;
+
+class node
+{
+	public:
+	 int frequency;
+	 char symbol;
+	 node* left;
+	 node* right;
+
+	 node()
+	 {
+	     left = NULL;
+	     right = NULL;
+     }
+
+	 node(node *l, node *r)
+	 {  left =  l;
+	    right = r;
+	    frequency = l->frequency + r->frequency;
+    }
+};
+
+
+struct MyCompare
+{
+    bool operator()(const node* l, const node* r) const
+    {
+        return l->frequency < r->frequency;
+    }
+};
+
+
+vector<bool> code;
+map<char,vector<bool>> table;
+
+void BuildTable(node *root)
+{
+    if (root->left != NULL)
+    {
+        code.push_back(0);
+        BuildTable(root->left);
+    }
+
+    if (root->right!=NULL)
+    {
+        code.push_back(1);
+        BuildTable(root->right);
+    }
+
+    if (root->left == NULL && root->right == NULL)
+    {
+        table[root->symbol] = code;
+    }
+
+    code.pop_back();
+}
+
+void Huffman()
+{
+    string file_name;
+    cin >> file_name;
+    ////// считаем частоты символов
+	ifstream fin(file_name);
+
+	map<char,int> _map;
+	string str;
+
+    while(fin)
+    {
+        getline(fin,str);//Производим чтение из файла и записываем его в строку str
+    }
+
+	for(int i = 0; i < str.length(); i++)
+	{
+        char symbol = str[i];
+	    _map[symbol]++;
+    }
+
+    map<char,int>:: iterator i1;
+
+    for(i1 = _map.begin(); i1 != _map.end(); i1++)
+    {
+        cout << i1->first << ":" << i1->second << endl;
+    }
+
+
+////// записываем начальные узлы в список list
+
+   list<node*> t;
+   map<char,int>::iterator itr;
+   for(itr = _map.begin(); itr != _map.end(); ++itr)
+   {
+      node *p = new node;
+      p->symbol = itr->first;
+      p->frequency = itr->second;
+      t.push_back(p);
+    }
+
+
+//////  создаем дерево
+
+  while (t.size() != 1)
+  {
+     t.sort(MyCompare());
+
+     node *left_son = t.front();
+     t.pop_front();
+
+     node *right_son = t.front();
+     t.pop_front();
+
+     node *parent = new node(left_son,right_son);
+     t.push_front(parent);
+
+  }
+
+	node *root = t.front();
+
+////// создаем пары 'символ-код':
+
+   	BuildTable(root);
+
+////// Выводим коды в файл output.txt
+
+    fin.clear(); fin.seekg(0); // перемещаем указатель снова в начало файла
+
+	ofstream fout("output.bin");
+
+    int counter = 0;
+    char buf = 0;
+
+    while (!fin.eof())
+    {
+        char c = fin.get();
+        vector<bool> x = table[c];
+        for(int n = 0; n < x.size(); n++)
+	    {
+	        buf = buf | x[n]<<(7-counter);
+            counter++;
+            if (counter == 8)
+            {
+                counter = 0;
+                fout << buf;
+                buf = 0;
+            }
+        }
+    }
+
+    fin.close();
+	fout.close();
+
+	fout.open("output2.txt");
+	map<char,vector<bool>>::iterator it;
+
+	for(it = table.begin(); it != table.end(); ++it)
+    {
+        fout << it->first;
+        vector<bool> x = table[it->first];
+        for(int n = 0; n < x.size(); n++)
+        {
+            fout << x[n];
+        }
+        fout << endl;
+    }
+
+    for(it = table.begin(); it != table.end(); ++it)
+    {
+        cout << it->first << " ";
+        vector<bool> x = table[it->first];
+        for(int n = 0; n < x.size(); n++)
+        {
+            cout << x[n];
+        }
+        cout << endl;
+    }
+    fout.close();
+}
+
+void decode()
+{
+    ifstream fin("output2.txt");
+    string void_symbol;
+    getline(fin,void_symbol);
+
+    while(fin)
+    {
+        char c = fin.get();
+
+        string str;
+        getline(fin,str);
+        cout << str;
+        vector<bool> x = table[c];
+        for(int i = 0; i < str.length(); i++)
+        {
+            
+        }
+
+    }
+    map<char,vector<bool>>::iterator it;
+
+    for(it = table.begin(); it != table.end(); ++it)
+    {
+        cout << it->first << " ";
+        vector<bool> x = table[it->first];
+        for(int n = 0; n < x.size(); n++)
+        {
+            cout << x[n];
+        }
+        cout << endl;
+    }
+}
+
+
+int main ()
+{
+
+///// считывание из файла output.txt и преобразование обратно
+
+	/*ifstream F("output.txt", ios::in | ios::binary);
+
+
+	node *p = root;
+	count=0; char byte;
+	byte = F.get();
+	while(!F.eof())
+	{   bool b = byte & (1 << (7-count) ) ;
+		if (b) p=p->right; else p=p->left;
+		if (p->left==NULL && p->right==NULL) {cout<<p->symbol; p=root;}
+		count++;
+		if (count==8) {count=0; byte = F.get();}
+	}
+
+	F.close();*/
+	//Huffman();
+	decode();
+
+	return 0;
+}
