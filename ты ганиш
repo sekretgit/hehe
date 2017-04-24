@@ -1,0 +1,353 @@
+#include <iostream>
+#include <vector>
+#include <map>
+#include <list>
+#include <fstream>
+#include <stdlib.h>
+#include <conio.h>
+
+using namespace std;
+
+class node
+{
+	public:
+	 int frequency;
+	 char symbol;
+	 node* left;
+	 node* right;
+
+	 node()
+	 {
+	     left = NULL;
+	     right = NULL;
+     }
+
+	 node(node *l, node *r)
+	 {  left =  l;
+	    right = r;
+	    frequency = l->frequency + r->frequency;
+    }
+};
+
+
+struct compare
+{
+    bool operator()(const node* l, const node* r) const
+    {
+        return l->frequency < r->frequency;
+    }
+};
+
+
+vector<bool> code;
+map<char,vector<bool>> table;
+
+void BuildTable(node *root)
+{
+    if (root->left != NULL)
+    {
+        code.push_back(0);
+        BuildTable(root->left);
+    }
+
+    if (root->right!=NULL)
+    {
+        code.push_back(1);
+        BuildTable(root->right);
+    }
+
+    if (root->left == NULL && root->right == NULL)
+    {
+        table[root->symbol] = code;
+    }
+
+    code.pop_back();
+}
+
+void Huffman()
+{
+    string file_name;
+    string str;
+
+    cout << "Enter File name: ";
+    cin >> file_name;
+
+	ifstream fin(file_name);
+	getline(fin,str);
+
+	map<char,int> _map;
+
+
+	for(int i = 0; i < str.length(); i++)
+	{
+        char symbol = str[i];
+	    _map[symbol]++;
+    }
+
+    map<char,int>:: iterator i1;
+
+   list<node*> t;
+   map<char,int>::iterator itr;
+   for(itr = _map.begin(); itr != _map.end(); ++itr)
+   {
+      node *p = new node;
+      p->symbol = itr->first;
+      p->frequency = itr->second;
+      t.push_back(p);
+    }
+
+
+//////  создаем дерево
+
+  while (t.size() != 1)
+  {
+     t.sort(compare());
+
+     node *left_son = t.front();
+     t.pop_front();
+
+     node *right_son = t.front();
+     t.pop_front();
+
+     node *parent = new node(left_son,right_son);
+     t.push_front(parent);
+
+  }
+
+	node *root = t.front();
+
+   	BuildTable(root);
+
+////// Выводим коды в файл output.bin
+
+    fin.clear();
+    fin.seekg(0); // перемещаем указатель снова в начало файла
+
+	ofstream fout("output.bin");
+
+    int counter = 0;
+    char byte = 0;
+
+    while (!fin.eof())
+    {
+        char c = fin.get();
+        vector<bool> x = table[c];
+        for(int n = 0; n < x.size(); n++)
+	    {
+	        byte = byte | x[n]<<(7-counter);
+            counter++;
+            if (counter == 8)
+            {
+                counter = 0;
+                fout << byte;
+                byte = 0;
+            }
+        }
+    }
+    fout << byte;
+
+    fin.close();
+	fout.close();
+
+	fout.open("output2.bin");
+	map<char,vector<bool>>::iterator it;
+
+	for(it = table.begin(); it != table.end(); ++it)
+    {
+        fout << it->first;
+        vector<bool> x = table[it->first];
+        for(int n = 0; n < x.size(); n++)
+        {
+            fout << x[n];
+        }
+        fout << endl;
+    }
+
+    for(it = table.begin(); it != table.end(); ++it)
+    {
+        cout << it->first << " ";
+        vector<bool> x = table[it->first];
+        for(int n = 0; n < x.size(); n++)
+        {
+            cout << x[n];
+        }
+        cout << endl;
+    }
+
+    fout.close();
+}
+
+void console_Huffman(string str)//аналогично функции Huffman, только данные читаются и выводятся на консоль
+{
+    map<char,int> _map;
+
+    for(int i = 0; i < str.length(); i++)
+	{
+        char symbol = str[i];
+	    _map[symbol]++;
+    }
+
+    map<char,int>:: iterator i1;
+
+   list<node*> t;
+   map<char,int>::iterator itr;
+   for(itr = _map.begin(); itr != _map.end(); ++itr)
+   {
+      node *p = new node;
+      p->symbol = itr->first;
+      p->frequency = itr->second;
+      t.push_back(p);
+    }
+
+  while (t.size() != 1)
+  {
+     t.sort(compare());
+
+     node *left_son = t.front();
+     t.pop_front();
+
+     node *right_son = t.front();
+     t.pop_front();
+
+     node *parent = new node(left_son,right_son);
+     t.push_front(parent);
+
+  }
+
+	node *root = t.front();
+
+   	BuildTable(root);
+
+   	map<char,vector<bool>>::iterator it;
+   	for(it = table.begin(); it != table.end(); ++it)
+    {
+        cout << it->first << " ";
+        vector<bool> x = table[it->first];
+        for(int n = 0; n < x.size(); n++)
+        {
+            cout << x[n];
+        }
+        cout << endl;
+    }
+
+    cout << "coded string: ";
+
+    for(int i = 0; i < str.length(); i++)
+    {
+        vector<bool> x = table[str[i]];
+        for(int n = 0; n < x.size(); n++)
+        {
+            cout << x[n];
+        }
+    }
+
+}
+
+void decoder()
+{
+    ifstream fin("output2.bin");
+    string void_symbol;
+    getline(fin,void_symbol);
+
+    while(!fin.eof())
+    {
+        char c = fin.get();
+
+        string str;
+        getline(fin,str);
+
+        for(int i = 0; i < str.length(); i++)
+        {
+            int p = int(str[i]);
+            if(p == 48)
+            {
+                code.push_back(0);
+            }
+            else
+            {
+                code.push_back(1);
+            }
+        }
+        table[c] = code;
+        code.clear();
+
+
+    }
+    fin.close();
+
+    map<char,vector<bool>>::iterator itq;
+
+
+    fin.open("output.bin");
+
+    int counter = 0;
+    char byte = 0;
+    fin >> byte;
+
+    vector<bool> vect;
+    vector<bool>::iterator it;
+
+    while(fin)
+    {
+        bool b = byte & (1<<(7-counter));
+        if(b)
+        {
+            vect.push_back(1);
+        }
+        else
+        {
+            vect.push_back(0);
+        }
+
+        for(itq = table.begin(); itq != table.end(); ++itq)
+        {
+            vector<bool> x = table[itq->first];
+            if(x == vect)
+            {
+                cout << itq->first;
+                vect.clear();
+                break;
+            }
+        }
+        counter++;
+        if(counter == 8)
+        {
+            counter = 0;
+            fin >> byte;
+        }
+    }
+
+
+
+
+
+
+
+
+}
+
+
+int main ()
+{
+    int n;
+    cout << "Huffman in console - 1 " << endl << "Huffman in file - 2" << endl << "Decode - 3" << endl;
+	cin >> n;
+	if(n == 2)
+    {
+        Huffman();
+    }
+    if(n == 1)
+    {
+        string str;
+        cout << "Enter string: " << endl;
+        cin >> str;
+
+        console_Huffman(str);
+    }
+    if(n == 3)
+    {
+        decoder();
+    }
+
+	return 0;
+}
