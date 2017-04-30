@@ -51,8 +51,9 @@ void shifr()
 {
     int e;
     int n;
-    cin >> n >> e;
+    cin >> e >> n;
     int k;//размер массива
+    cin >> k;
     int A[k];
 
     for(int i = 0; i < k; i++){cin >> A[i];}
@@ -64,11 +65,12 @@ void rashifr()
 {
     int d;
     int n;
-    int k;
-    int A[k];
     cin >> d;
     cin >> n;
+    int k;
     cin >> k;//Размер массива
+    int A[k];
+
     for(int i = 0; i < k; i++){cin >> A[i];}
     for(int i = 0; i < k; i++){A[i] = bpow(A[i],d,n);}
     for(int i = 0; i < k; i++){cout << A[i];}
