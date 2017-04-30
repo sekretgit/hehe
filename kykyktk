@@ -1,0 +1,97 @@
+#include <iostream>
+#include <cmath>
+#include <ctime>
+#include <stdlib.h>
+
+using namespace std;
+
+bool is_prime(int &number)
+{
+    if(number == 0 || number == 1)
+    {
+        return false;
+    }
+    for(int i = 2; i < sqrt(number); i++)
+    {
+        if(number % i == 0)
+           {
+               return false;
+           }
+
+    }
+
+    return true;
+}
+
+long long first_step(int &first_number, int &second_number)
+{
+    long long add_number = first_number * second_number;
+    return add_number;
+}
+
+int second_step(long long euler_funct)//Создаем число
+{
+    int e;
+    do
+    {
+        e = rand();
+    }
+    while(!is_prime(e) || (euler_funct % e == 0));
+
+    return e;
+}
+
+int third_step(long long euler_funct, int e)
+{
+    int d;
+    do
+    {
+        d = rand();
+    }
+    while((d * e) % euler_funct != 1);
+
+    return d;
+}
+
+void create_keys()
+{
+    int p;
+    int q;
+
+    srand(time(NULL));
+
+    _begin:
+
+    do
+    {
+        q = 10000 + rand();
+    }
+    while(!is_prime(q));
+
+    do
+    {
+        p = 10000 + rand();
+    }
+    while(!is_prime(p));
+
+    cout << p << endl << q << endl;
+
+    long long n = first_step(p,q);
+
+    if(n < 0)//Защита от переполнения
+    {
+        goto _begin;
+    }
+
+    long long euler_funct = (p - 1) * (q - 1);
+    int e = second_step(euler_funct);
+    int d = third_step(euler_funct, e);
+
+    cout << p << endl << q << endl << n << endl << euler_funct << endl << e << endl << d << endl;
+}
+
+int main()
+{
+    create_keys();
+    return 0;
+}
