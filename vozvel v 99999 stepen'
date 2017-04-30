@@ -1,0 +1,179 @@
+#include <iostream>
+#include <cmath>
+#include <ctime>
+#include <stdlib.h>
+#include <list>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+bool is_prime(int &number)
+{
+    if(number == 0 || number == 1)
+    {
+        return false;
+    }
+
+    for(int i = 2; i < sqrt(number); i++)
+    {
+        if(number % i == 0)
+           {
+               return false;
+           }
+    }
+
+    return true;
+}
+
+long long first_step(int &first_number, int &second_number)
+{
+    long long add_number = first_number * second_number;
+    return add_number;
+}
+
+int second_step(long long euler_funct)//Создаем число
+{
+    int e;
+    do
+    {
+        e = rand();
+    }
+    while(!is_prime(e) || (euler_funct % e == 0));
+
+    return e;
+}
+
+int third_step(long long euler_funct, int e)
+{
+    int d = 1000;
+    do
+    {
+        d++;
+    }
+    while((d * e) % euler_funct != 1);
+
+    return d;
+}
+
+long long bin_pow(int k, int e, int n)
+{
+    long long counter = 1;
+    if(!e)
+    {
+        return 1;
+    }
+    while(e)
+    {
+        if(e % 2 == 0)
+        {
+          e /= 2;
+          k *= k;
+          k %= n;
+        }
+        else
+        {
+            e--;
+            counter *= k;
+            counter %= n;
+        }
+  }
+  return counter % n;
+}
+
+
+vector<int> encryption(int e, long long n)
+{
+    string input;
+    cin >> input;
+
+    int array_size = input.length();
+    vector <int> output(array_size);
+
+    for(int i = 0; i < input.length(); i++)//Кодируем символы из строки по таблице ascii и шифруем
+    {
+        int k = int(input[i]);
+        output[i] = bin_pow(k,e,n);
+    }
+
+    for(int i = 0; i < array_size; i++)
+    {
+        cout << output[i];
+    }
+    cout << endl;
+
+    return output;
+}
+
+void deciphering(int d, int n,vector<int> input)
+{
+    char output[input.size()];
+
+    for(int i = 0; i < input.size(); i++)//Кодируем символы из строки по таблице ascii и шифруем
+    {
+        long long temp = bin_pow(input[i],d,n);
+        char temp2 = temp;
+        output[i] = temp2;
+    }
+
+    cout << output << endl;
+}
+
+void create_keys_random()
+{
+    int p;
+    int q;
+
+    srand(time(NULL));
+
+    _begin:
+
+    do
+    {
+        q = 10000 + rand();
+    }
+    while(!is_prime(q));
+
+    do
+    {
+        p = 10000 + rand();
+    }
+    while(!is_prime(p));
+
+    long long n = first_step(p,q);
+
+    if(n < 0)//Защита от переполнения
+    {
+        goto _begin;
+    }
+
+    long long euler_funct = (p - 1) * (q - 1);
+    int e = second_step(euler_funct);
+    int d = third_step(euler_funct, e);
+
+    cout << "public key: [" << e << ", " << n << "]" << endl;
+    cout << "private key: [" << d << ", " << n << "]" << endl;
+}
+
+void RSA()
+{
+    int e;
+    int d;
+    int n;
+    cin >> e;
+    cin >> d;
+    cin >> n;
+
+    vector<int> input;
+    input = encryption(e,n);
+    deciphering(d,n,input);
+}
+
+int main()
+{
+    create_keys_random();
+    RSA();
+
+
+    return 0;
+}
