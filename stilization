@@ -1,0 +1,97 @@
+#include <iostream>
+#include <cmath>
+#include <ctime>
+#include <stdlib.h>
+#include <list>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+int find_prime()
+{
+    start:
+    int x = rand()%100;
+
+    if(x == 0 || x == 1)
+    {
+        goto start;
+    }
+
+    for(int i = 2; i < sqrt(x); i++)
+    {
+        if(x % i == 0)
+           {
+               goto start;
+           }
+    }
+
+    return x;
+}
+
+int bpow(int x, int n, int m)
+{
+  int temp=1;
+  if (!n) return 1;
+  while (n) {
+    if (n%2==0) {
+      n/=2;
+      x*=x;
+      x %= m;
+    } else {
+      n--;
+      temp*=x;
+      temp %=m;
+    }
+  }
+  return temp % m;
+}
+
+void shifr()
+{
+    int e;
+    int n;
+    cin >> n >> e;
+    int k;//размер массива
+    int A[k];
+
+    for(int i = 0; i < k; i++){cin >> A[i];}
+    for(int i = 0; i < k; i++){A[i] = bpow(A[i],e,n);}
+    for(int i = 0; i < k; i++){cout << A[i];}
+}
+
+void rashifr()
+{
+    int d;
+    int n;
+    int k;
+    int A[k];
+    cin >> d;
+    cin >> n;
+    cin >> k;//Размер массива
+    for(int i = 0; i < k; i++){cin >> A[i];}
+    for(int i = 0; i < k; i++){A[i] = bpow(A[i],d,n);}
+    for(int i = 0; i < k; i++){cout << A[i];}
+}
+
+void keys()
+{
+    int first_number;
+    int second_number;
+
+    first_number = find_prime();
+    second_number = find_prime();
+    int n = first_number * second_number;
+    int fi_ot_n = (first_number - 1) * (second_number - 1);
+    int e = fi_ot_n-1;
+    int d = e+1;
+    while((d * e) % fi_ot_n != 1){d++;}
+}
+
+int main()
+{
+    keys();
+    shifr();
+    rashifr();
+    return 0;
+}
