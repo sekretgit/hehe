@@ -1,0 +1,110 @@
+#include <iostream>
+
+using namespace std;
+
+void put_snake(int firstArraySize, int secondArraySize)//Если что-то не понятно, то можно вывести массив на экран после каждого шага. ТАк будет понятней, что проиходит
+{
+    int my_array[firstArraySize][secondArraySize];//Создаю двумерный массив
+
+    for(int i = 0; i < firstArraySize; i++)//Заполняю массив единицами
+    {
+        for(int j = 0; j < secondArraySize; j++)
+        {
+            my_array[i][j] = 1;
+        }
+    }
+
+    int adder = 0;//Изначально массив заполнен единицами. Мы будет проходить по массиву змейкой и плюсовать значение, которое лежит в adder
+    int counter = 1;//Счетчик, который будет отвечать за отстут от нижней и правой грани таблицы
+    int secondCounter = 0;//Счетчик, который будет отвечать за отступ от верхней и левой грани таблицы
+    int j;
+    int i;
+
+    firstStep:
+    i = firstArraySize-counter;//изначально перемещаюсь в самый низ таблицы(в последнюю строчку)
+
+    for(int j = secondCounter; j < secondArraySize; j++)//пробегаюсь по последней строчке, прибавляя к элементам массива adder(после прохождения этого цикла в 1 раз последняя строчка выглядит так: 1 2 3 4 ... secondArraySize)
+    {
+        my_array[i][j] += adder;
+        adder++;
+        if(adder == secondArraySize*firstArraySize)//если вся таблица заполнена змейкой, то мы идем уже к циклу вывода массива на экран
+        {
+            goto end;//Оператор goto перемещает нас к определенной части кода в функции
+        }
+        if(j == secondArraySize - counter)//Если мы прошли нижнюю строчку, то переходим ко 2 шагу
+        {
+            goto secondStep;
+        }
+    }
+
+    secondStep://2 шаг
+    j = secondArraySize - counter;//Находимся возле павой грани таблицы
+    for(int i = firstArraySize-counter-1; i >= secondCounter; i--)//Проходим из нижнего правого угла в верхний правый угол
+    {
+        my_array[i][j] += adder;//к каждому элементу прибавляем adder
+        adder++;//После каждого прибавления увеличиваем adder на 1
+        if(adder == secondArraySize*firstArraySize)//если вся таблица заполнена змейкой, то мы идем уже к циклу вывода массива на экран
+        {
+            goto end;
+        }
+        if(i == secondCounter)//Если находимся в верхнем правом углу, то идем к 3 шагу
+        {
+            goto thirdStep;
+        }
+    }
+
+    thirdStep:
+    i = counter - 1;//Находимся на верхней грани таблицы
+    for(int j = secondArraySize - counter-1; j >= secondCounter; j--)//Всю верхнюю грань последоватьно увеличиваю на adder, идя из правого верхего угла в левый верхний(мб коряво сказано)
+    {
+        my_array[i][j] += adder;
+        adder++;
+        if(adder == secondArraySize*firstArraySize)
+        {
+            goto end;
+        }
+        if(j == secondCounter)//Если находимся в левом верхнем углу, то переходим к 4 шагу
+        {
+            goto fourthStep;
+        }
+    }
+
+    fourthStep:
+    j = secondCounter;//Находимся у левой грани(даижение осуществляется по ней вверх и вниз)
+    for(int i = secondCounter + 1; i < firstArraySize - counter; i++)//Аналогично прибавляю adder к каждому элементу из правой грани.
+    {
+        my_array[i][j] += adder;
+        adder++;
+        if(adder == secondArraySize*firstArraySize)
+        {
+            goto end;
+        }
+        if(i == firstArraySize - counter - 1)//если нахожусь на 1 клетку выше левого нижнейго угла, то начинаю все 4 шага заново, но отступив от граней на 1 к центру(мы нарисовали внешний слой, грани таблицы, теперь рисуем внутренний слой)
+        {
+            counter++;//отступ от нижней и правой грани увеличивается на 1
+            secondCounter++;//тступ от левой и верхней грани увеличивается на единицу
+            goto firstStep;
+        }
+    }
+
+    end:
+    for(int i = 0; i < firstArraySize; i++)//Вывод двумерного массива на экран консоли
+    {
+        for(int j = 0; j < secondArraySize; j++)//Проходя это цикл рисуется одна горизонтальная линия
+        {
+            cout << my_array[i][j] << "   ";
+        }
+        cout << endl << endl;//Отступаем вниз на 1 строку и рисуем 2 горизонтальную линию
+    }
+}
+
+int main()
+{
+    int firstArraySize;//Аналогично m(Длина массива по вертикали)
+    int secondArraySize;//Аналогично n(Длинна массива по горизонтали)
+    cin >> firstArraySize >> secondArraySize;
+
+    put_snake(firstArraySize, secondArraySize);//я не стал передавать в функцию двумерный массив, так как так проще
+
+    return 0;
+}
